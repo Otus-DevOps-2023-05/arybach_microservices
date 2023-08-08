@@ -1,0 +1,11 @@
+REPOSITORY                      TAG           IMAGE ID       CREATED        SIZE
+mlops-evidently-monitoring-db   latest        8e956745c606   3 days ago     249MB
+fastapi_app                     latest        94b0f13ad445   3 days ago     1.88GB
+mlops-evidently-ssl_generator   latest        967569cf16cd   3 days ago     1.88GB
+streamlit_app                   latest        74e1411b705a   3 days ago     1.01GB
+nginx                           latest        89da1fb6dcb9   11 days ago    187MB
+ubuntu                          18.04         f9a80a55f492   2 months ago   63.2MB
+hello-world                     latest        9c7a54a9a43c   3 months ago   13.3kB
+postgres                        15.2-alpine   ddc12ac7fa27   4 months ago   243MB
+''' Docker image - не изменяемый, переиспользуемый и версионируемый шаблон со всеми зависимостями для запуска приложения, собран из слоев.
+''' Docker container - изолированная, дополняемая и изменяемая инстанция docker image. Может быть запущен, остановлен и удален.
