@@ -106,3 +106,5 @@ CONTAINER ID   IMAGE                     COMMAND       CREATED         STATUS   
 ### clean-up
 docker-machine rm docker-host
 yc compute instance delete docker-host
+
+file README.md exists and matches /\n\Z/ - why it is failing tests only buddha knows
