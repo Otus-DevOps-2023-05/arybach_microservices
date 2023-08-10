@@ -1,5 +1,7 @@
 ### arybach_microservices
 arybach microservices repository
+added .pre-commit-config.yaml
+pre-commit install
 
 ### created: docker images > docker-monolith/docker-1.log
 ### added description of docker image vs docker container
