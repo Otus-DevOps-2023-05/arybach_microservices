@@ -93,23 +93,7 @@ docker run -d --network=reddit -p 9292:9292 arybach/ui:1.0
 
 ### testing
 http://158.160.113.134:9292/
-all works except for the ALL POSTS (under all Dockerfile versions)
-
-ALL POSTS are not available. These are the logs:
- GET | response_status=200
-I, [2023-08-11T13:09:13.889871 #1]  INFO -- : service=ui | event=post_create | request_id=818ee74e-bb6b-4741-85a5-d3622a177b4a | message='Successfully created a post' | params: {"title":"cool title","link":"http://158.160.113.134:9292/new"}
-I, [2023-08-11T13:09:13.890191 #1]  INFO -- : service=ui | event=request | path=/new | request_id=818ee74e-bb6b-4741-85a5-d3622a177b4a | remote_addr=110.139.196.116 | method= POST | response_status=303
-E, [2023-08-11T13:09:14.244140 #1] ERROR -- : service=ui | event=show_all_posts | request_id=09255b75-be43-4bbf-873e-19ffd345fd8f | message='Failed to read from Post service. Reason: 767: unexpected token at 'Internal Server Error'' | params: "{}"
-I, [2023-08-11T13:09:14.256718 #1]  INFO -- : service=ui | event=request | path=/ | request_id=09255b75-be43-4bbf-873e-19ffd345fd8f | remote_addr=110.139.196.116 | method= GET | response_status=200
-E, [2023-08-11T13:09:16.485568 #1] ERROR -- : service=ui | event=show_all_posts | request_id=4bf4e841-e969-4de0-ae35-fbbf7d9495a8 | message='Failed to read from Post service. Reason: 767: unexpected token at 'Internal Server Error'' | params: "{}"
-I, [2023-08-11T13:09:16.503808 #1]  INFO -- : service=ui | event=request | path=/ | request_id=4bf4e841-e969-4de0-ae35-fbbf7d9495a8 | remote_addr=110.139.196.116 | method= GET | response_status=200
-E, [2023-08-11T13:09:18.394232 #1] ERROR -- : service=ui | event=show_all_posts | request_id=29ed60fc-af3a-4e83-9579-5f465f2d31f3 | message='Failed to read from Post service. Reason: 767: unexpected token at 'Internal Server Error'' | params: "{}"
-I, [2023-08-11T13:09:18.406945 #1]  INFO -- : service=ui | event=request | path=/ | request_id=29ed60fc-af3a-4e83-9579-5f465f2d31f3 | remote_addr=110.139.196.116 | method= GET | response_status=200
-E, [2023-08-11T13:09:19.864135 #1] ERROR -- : service=ui | event=show_all_posts | request_id=a05f44d4-7bb7-4c84-8b35-c69f0209eef8 | message='Failed to read from Post service. Reason: 767: unexpected token at 'Internal Server Error'' | params: "{}"
-I, [2023-08-11T13:09:19.880760 #1]  INFO -- : service=ui | event=request | path=/ | request_id=a05f44d4-7bb7-4c84-8b35-c69f0209eef8 | remote_addr=110.139.196.116 | method= GET | response_status=200
-E, [2023-08-11T13:09:23.814582 #1] ERROR -- : service=ui | event=show_all_posts | request_id=337062bf-4467-4b2e-b3ec-c1ca914f0873 | message='Failed to read from Post service. Reason: 767: unexpected token at 'Internal Server Error'' | params: "{}"
-I, [2023-08-11T13:09:23.830601 #1]  INFO -- : service=ui | event=request | path=/ | request_id=337062bf-4467-4b2e-b3ec-c1ca914f0873 | remote_addr=110.139.196.116 | method= GET | response_status=200
-
+all works
 
 ### clean-up
 docker kill $(docker ps -q)
