@@ -1,0 +1,56 @@
+version: '3.3'
+services:
+  post_db:
+    image: mongo:${MONGO_VERSION}
+    volumes:
+      - post_db:/data/db
+    networks:
+      backend_net:
+        aliases:
+          - ${BACKEND_ALIAS}
+
+  ui:
+    image: ${USERNAME}/ui:${UI_VERSION}
+    volumes:
+      - ./ui:/app
+    ports:
+      - "${UI_PORT}:9292/tcp"
+    # command: ["/bin/bash", "-l", "-c", "bundle exec puma --debug -w"]
+    # command: ["/bin/bash", "-l", "-c", "bundle exec puma -w"]
+    networks:
+      frontend_net:
+        aliases:
+          - ${FRONTEND_ALIAS}
+
+  post:
+    image: ${USERNAME}/post:${POST_VERSION}
+    volumes:
+      - ./post-py:/app
+    networks:
+      frontend_net:
+        aliases:
+          - ${FRONTEND_ALIAS}
+      backend_net:
+        aliases:
+          - ${BACKEND_ALIAS}
+
+  comment:
+    image: ${USERNAME}/comment:${COMMENT_VERSION}
+    volumes:
+      - ./comment:/app
+    # command: ["puma", "--debug"]
+    # command: ["puma", "-w"]
+    networks:
+      frontend_net:
+        aliases:
+          - ${FRONTEND_ALIAS}
+      backend_net:
+        aliases:
+          - ${BACKEND_ALIAS}
+
+volumes:
+  post_db:
+
+networks:
+  frontend_net:
+  backend_net:
