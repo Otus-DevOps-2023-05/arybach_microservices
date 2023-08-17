@@ -93,7 +93,7 @@ docker run -d --network=reddit -p 9292:9292 arybach/ui:1.0
 
 ### testing
 http://158.160.113.134:9292/
-all works except
+all works
 
 ### clean-up
 docker kill $(docker ps -q)
