@@ -187,3 +187,5 @@ To http://84.201.133.4/homework/example.git
 docker kill $(docker ps -q)
 docker-machine rm gitlab-ci-vm
 yc compute instance delete gitlab-ci-vm
+
+### gitlab-ci-1 hmwk has proper structure and all necessary files yet fails tests
