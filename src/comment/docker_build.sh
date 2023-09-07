@@ -5,4 +5,8 @@ echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
 
 VERSION_TAG=$1
 
-docker build -t $USER_NAME/comment:$VERSION_TAG .
+if [ -z "$1" ]; then
+  docker build -t $USER_NAME/comment .
+else
+  docker build -t $USER_NAME/comment:$VERSION_TAG .
+fi
