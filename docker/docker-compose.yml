@@ -1,0 +1,148 @@
+version: '3.3'
+services:
+  post_db:
+    image: mongo:${MONGO_VERSION}
+    container_name: post_db
+    volumes:
+      - post_db:/data/db
+    expose:
+      - "27017"
+    networks:
+      backend_net:
+        aliases:
+          - ${BACKEND_ALIAS}
+
+  ui:
+    build: ./ui
+    image: ${DOCKER_REPO}/ui:${UI_VERSION}
+    container_name: ui
+    environment:
+      - POST_SERVICE_HOST=post
+      - POST_SERVICE_PORT=5000
+      - COMMENT_SERVICE_HOST=comment
+      - COMMENT_SERVICE_PORT=9292
+      - ZIPKIN_ENABLED=False
+    ports:
+      - "${UI_PORT}:9292/tcp"
+    networks:
+      frontend_net:
+        aliases:
+          - ${FRONTEND_ALIAS}
+
+  post:
+    build: ./post-py
+    image: ${DOCKER_REPO}/post:${POST_VERSION}
+    container_name: post
+    depends_on:
+      - post_db
+    environment:
+      - POST_DATABASE_HOST=post_db
+      - POST_DATABASE_PORT=27017
+      # no zipkin service is available
+      # - ZIPKIN_HOST=zipkin_service
+      # - ZIPKIN_PORT=9411
+      - ZIPKIN_ENABLED=False
+    networks:
+      frontend_net:
+        aliases:
+          - ${FRONTEND_ALIAS}
+      backend_net:
+        aliases:
+          - ${BACKEND_ALIAS}
+
+  comment:
+    build: ./comment
+    image: ${DOCKER_REPO}/comment:${COMMENT_VERSION}
+    container_name: comment
+    expose:
+      - "9292"
+    environment:
+      - COMMENT_DATABASE_HOST=post_db
+      - COMMENT_DATABASE_PORT=27017
+      - COMMENT_DATABASE=comments
+    networks:
+      frontend_net:
+        aliases:
+          - ${FRONTEND_ALIAS}
+      backend_net:
+        aliases:
+          - ${BACKEND_ALIAS}
+
+  prometheus:
+    image: ${DOCKER_REPO}/prometheus:${PROMETHEUS_VERSION}
+    container_name: prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - prometheus_data:/prometheus
+    command: # Передаем доп параметры в командной строке
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=1d' # Задаем время хранения метрик в 1 день
+    networks:
+      frontend_net:
+        aliases:
+          - ${FRONTEND_ALIAS}
+      backend_net:
+        aliases:
+          - ${BACKEND_ALIAS}
+          - node-exporter
+
+  node-exporter:
+    image: ${DOCKER_REPO}/node-exporter:${NODE_EXPORTER_VERSION}
+    user: root
+    container_name: node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
+    networks:
+      frontend_net:
+        aliases:
+          - ${FRONTEND_ALIAS}
+      backend_net:
+        aliases:
+          - ${BACKEND_ALIAS}
+          - node-exporter
+
+  mongodb_exporter:
+    image: ${DOCKER_REPO}/mongodb-exporter:${MONGODB_EXPORTER_VERSION}
+    container_name: mongodb_exporter
+    environment:
+      - MONGODB_URI=mongodb://post_db:27017/
+    command:
+    # - '--collect-all'
+      - '--collector.dbstats'
+      - '--collector.diagnosticdata'
+      - '--collector.topmetrics'
+      - '--web.listen-address=0.0.0.0:9216'
+    networks:
+      backend_net:
+        aliases:
+          - mongodb_exporter
+          - ${BACKEND_ALIAS}
+
+  cloudprober:
+    image: ${DOCKER_REPO}/cloudprober:${CLOUDPROBER_VERSION}
+    container_name: cloudprober
+    # cloudprober.cfg is copied into the image during build
+    #volumes:
+    #  - ./cloudprober.cfg:/etc/cloudprober.cfg
+    command:
+      - "-config_file=/etc/cloudprober.cfg"
+    networks:
+      frontend_net:
+        aliases:
+          - cloudprober
+
+volumes:
+  prometheus_data:
+  post_db:
+
+networks:
+  frontend_net:
+  backend_net:
