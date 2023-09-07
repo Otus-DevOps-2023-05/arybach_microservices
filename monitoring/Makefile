@@ -5,7 +5,7 @@ DOCKER_DIR = $(WORKDIR)/docker
 -include $(DOCKER_DIR)/.env
 export
 
-SERVICES = ui post comment
+SERVICES = ui post-py comment
 MONITORING_SERVICES = prometheus cloudprober mongodb-exporter node-exporter
 
 start:
@@ -23,6 +23,8 @@ build: build-services build-monitoring
 
 build-services:
 	for service in $(SERVICES); do \
+		img_name=$$service; \
+		[ "$$service" = "post-py" ] && img_name="post"; \
 		if [ -d "$(WORKDIR)/src/$$service" ]; then \
 			cd $(WORKDIR)/src/$$service; \
 			if [ -f "docker_build.sh" ]; then \
@@ -51,9 +53,11 @@ push: push-services push-monitoring
 
 push-services:
 	for service in $(SERVICES); do \
+		img_name=$$service; \
+		[ "$$service" = "post-py" ] && img_name="post"; \
 		if [ -d "$(WORKDIR)/src/$$service" ]; then \
 			cd $(WORKDIR)/src/$$service; \
-			docker push $(DOCKER_REPO)/$$service:$(VERSION_TAG); \
+			docker push $(DOCKER_REPO)/$$img_name:$(VERSION_TAG); \
 			cd -; \
 		else \
 			echo "Directory not found for $$service"; \
