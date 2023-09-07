@@ -25,8 +25,8 @@ build-services:
 	for service in $(SERVICES); do \
 		img_name=$$service; \
 		[ "$$service" = "post-py" ] && img_name="post"; \
-		if [ -d "$(WORKDIR)/src/$$service" ]; then \
-			cd $(WORKDIR)/src/$$service; \
+		if [ -d "$(DOCKER_DIR)/$$service" ]; then \
+			cd $(DOCKER_DIR)/$$service; \
 			if [ -f "docker_build.sh" ]; then \
 				bash docker_build.sh $(VERSION_TAG); \
 			else \
@@ -55,8 +55,8 @@ push-services:
 	for service in $(SERVICES); do \
 		img_name=$$service; \
 		[ "$$service" = "post-py" ] && img_name="post"; \
-		if [ -d "$(WORKDIR)/src/$$service" ]; then \
-			cd $(WORKDIR)/src/$$service; \
+		if [ -d "$(DOCKER_DIR)/$$service" ]; then \
+			cd $(DOCKER_DIR)/$$service; \
 			docker push $(DOCKER_REPO)/$$img_name:$(VERSION_TAG); \
 			cd -; \
 		else \

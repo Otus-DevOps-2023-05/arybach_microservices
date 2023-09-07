@@ -13,7 +13,7 @@ yc compute instance create \
 
 docker-machine create \
 --driver generic \
---generic-ip-address=62.84.116.71 \
+--generic-ip-address=158.160.122.167 \
 --generic-ssh-user yc-user \
 --generic-ssh-key ~/.ssh/yc \
 docker-host
@@ -34,9 +34,9 @@ Status: Downloaded newer image for prom/prometheus:latest
 docker ps
 docker stop prometheus
 
-### open 62.84.116.71:9090
+### open http://158.160.122.167:9090
 docker-machine ip docker-host
-62.84.116.71
+158.160.122.167
 
 ## build prometheus image
 cd monitoring/prometheus
@@ -51,10 +51,10 @@ find / -name docker_build.sh 2>/dev/null
 VERSION_TAG=$1
 image:$VERSION_TAG
 
-### then from microservices root folder
+### then from microservices/docker
 VERSION_TAG="1.0"
 
-for i in ui post comment; do
+for i in ui post-py comment; do
     cd src/$i
     bash docker_build.sh $VERSION_TAG
     cd -
@@ -63,7 +63,7 @@ done
 ### or
 VERSION_TAG="1.0"
 /src/ui $ bash docker_build.sh $VERSION_TAG
-/src/post $ bash docker_build.sh $VERSION_TAG
+/src/post-py $ bash docker_build.sh $VERSION_TAG
 /src/comment $ bash docker_build.sh $VERSION_TAG
 
 ### output of docker builds
