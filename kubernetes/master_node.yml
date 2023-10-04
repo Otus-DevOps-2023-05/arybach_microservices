@@ -1,0 +1,177 @@
+---
+- name: Setup Master Node
+  hosts: master
+  become: yes  # This is to run tasks as sudo
+  become_user: root  # This will switch the user to root for all tasks
+  gather_facts: yes
+  gather_subset:
+    - network
+  environment:  # This sets the KUBECONFIG environment variable for all tasks
+    KUBECONFIG: "/home/yc-user/.kube/config"
+  tasks:
+    - name: Make the Swap inactive
+      command: swapoff -a
+
+    - name: Remove Swap entry from /etc/fstab.
+      lineinfile:
+        dest: /etc/fstab
+        regexp: swap
+        state: absent
+
+    - name: Update package list
+      apt:
+        update_cache: yes
+
+    - name: Install pip
+      apt:
+        name: python3-pip
+        state: present
+
+    - name: Install required Python libraries
+      pip:
+        name:
+          - kubernetes
+
+    - name: Update and install dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - curl
+          - software-properties-common
+        update_cache: yes
+
+    - name: Add Kubernetes APT key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+
+    - name: Add Docker APT key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+
+    - name: Install specified versions of Docker and Kubernetes components
+      apt:
+        name:
+          - docker-ce=5:19.03.14~3-0~ubuntu-focal
+          - kubelet=1.19.16-00
+          - kubeadm=1.19.16-00
+          - kubectl=1.19.16-00
+        update_cache: yes
+
+    - name: Set KUBELET_EXTRA_ARGS in /etc/default/kubelet
+      lineinfile:
+        path: /etc/default/kubelet
+        line: 'KUBELET_EXTRA_ARGS=--container-runtime=docker'
+        create: yes
+
+    - name: Hold the versions of kubelet, kubeadm and kubectl
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+    - name: Initialize Kubernetes cluster
+      command: >-
+        kubeadm init
+        --apiserver-cert-extra-sans={{ ansible_default_ipv4.address }}
+        --apiserver-advertise-address=0.0.0.0
+        --control-plane-endpoint={{ ansible_default_ipv4.address }}
+        --pod-network-cidr=10.244.0.0/16
+      register: kubeadm_init_output
+
+    - name: Create .kube directory
+      file:
+        path: "/home/yc-user/.kube"
+        state: directory
+
+    - name: Wait for a bit before copying
+      wait_for:
+        timeout: 120  # wait for 120 seconds
+      delegate_to: localhost
+      become: no
+
+    - name: Copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "/home/yc-user/.kube/config"
+        # owner: "{{ ansible_env.USER }}"
+        # group: "{{ ansible_env.USER }}"
+        owner: "yc-user"
+        group: "yc-user"
+        # otherwise it will be looking for it on a local ansible host
+        remote_src: yes
+
+    # Fetch tigera-operator.yaml - USE CREATE - not apply as it generates verbose definitions and errors out (known bug)
+    - name: Create Calico operator manifest directly from URL
+      command: kubectl create -f https://docs.projectcalico.org/v3.18/manifests/tigera-operator.yaml
+
+    # Fetch, modify, and store custom-resources.yaml to /home/yc-user/.kube
+    - name: Fetch and modify Calico custom resources manifest
+      shell: |
+        curl -L https://docs.projectcalico.org/v3.18/manifests/custom-resources.yaml -o /home/yc-user/.kube/custom-resources.yaml
+        sed -i 's/cidr: 192.168.0.0\/16/cidr: 10.244.0.0\/16/' /home/yc-user/.kube/custom-resources.yaml
+
+    # Apply custom-resources.yaml using kubectl apply
+    - name: Apply modified Calico custom resources manifest
+      command: kubectl apply -f /home/yc-user/.kube/custom-resources.yaml
+
+    - name: Copy reddit manifests to master node
+      copy:
+        src: ./reddit/
+        dest: /home/yc-user/reddit
+        owner: "yc-user"
+        group: "yc-user"
+
+    - name: Apply Reddit manifests
+      shell: |
+        kubectl --kubeconfig=/home/yc-user/.kube/config apply -f /home/yc-user/reddit/
+
+    - name: Generate and capture kubeadm join token command
+      command: kubeadm token create --print-join-command
+      register: join_command_output
+
+    - name: Output join token command
+      debug:
+        var: join_command_output.stdout
+
+    # Ensure the directory exists and is owned by ansible user: path: "./the_hard_way"
+
+    - name: Copy various kubeconfig files to local
+      fetch:
+        src: "/etc/kubernetes/{{ item }}"
+        dest: "./the_hard_way/{{ item }}"
+        flat: yes
+      loop:
+        - admin.conf
+        - scheduler.conf
+        - kubelet.conf
+        - controller-manager.conf
+
+    - name: Store join token command locally
+      copy:
+        content: "{{ join_command_output.stdout }}"
+        dest: "./the_hard_way/join_command.txt"
+      delegate_to: localhost
+      become: no
+
+    # allow scheduling pods on master node (otherwise there are not enough resources with a single worker)
+    - name: Remove master taint
+      ansible.builtin.command:
+        cmd: kubectl taint nodes --all node-role.kubernetes.io/master-
+      ignore_errors: yes  # This is to ignore errors in case the taint is already removed
+
+  handlers:
+    - name: Restart Kubelet
+      systemd:
+        name: kubelet
+        state: restarted

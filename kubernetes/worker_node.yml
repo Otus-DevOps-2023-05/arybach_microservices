@@ -1,0 +1,92 @@
+---
+- name: Setup Kubernetes Worker Nodes
+  hosts: workers
+  become: yes  # This is to run tasks as sudo
+  become_user: root  # This will switch the user to root for all tasks
+  gather_facts: yes
+  gather_subset:
+    - network
+  tasks:
+    - name: Make the Swap inactive
+      command: swapoff -a
+
+    - name: Remove Swap entry from /etc/fstab.
+      lineinfile:
+        dest: /etc/fstab
+        regexp: swap
+        state: absent
+
+    - name: Update package list
+      apt:
+        update_cache: yes
+
+    - name: Get join command from local file
+      slurp:
+        src: "./the_hard_way/join_command.txt"
+      delegate_to: localhost
+      register: join_cmd_content
+      become: no
+
+    - set_fact:
+        JOIN_COMMAND: "{{ join_cmd_content['content'] | b64decode }}"
+
+    - name: Update apt cache and install required packages
+      apt:
+        update_cache: yes
+        name: ['apt-transport-https', 'curl', 'software-properties-common']
+        state: present
+
+    - name: Add Kubernetes APT key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: 'deb https://apt.kubernetes.io/ kubernetes-xenial main'
+        state: present
+
+    - name: Add Docker APT key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+
+    - name: Install specified versions of Docker and Kubernetes components
+      apt:
+        name:
+          - docker-ce=5:19.03.14~3-0~ubuntu-focal
+          - kubelet=1.19.16-00
+          - kubeadm=1.19.16-00
+          - kubectl=1.19.16-00
+        update_cache: yes
+
+    - name: Set KUBELET_EXTRA_ARGS in /etc/default/kubelet
+      lineinfile:
+        path: /etc/default/kubelet
+        line: 'KUBELET_EXTRA_ARGS=--container-runtime=docker'
+        create: yes
+
+    - name: Restart kubelet
+      systemd:
+        name: kubelet
+        state: restarted
+
+    - name: Hold the versions of kubelet, kubeadm and kubectl
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+    - name: Join Kubernetes Cluster
+      shell: "{{ JOIN_COMMAND }}"
+
+    - name: Waiting for node to join the cluster
+      pause:
+        seconds: 60  # adjust the time as needed
+    # kubectl taint nodes --all node-role.kubernetes.io/master-  # uncomment if you want to use the master as a worker node
+...

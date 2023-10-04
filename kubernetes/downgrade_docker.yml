@@ -1,0 +1,35 @@
+---
+- name: Configure Docker Hosts
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure Docker is installed
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        update_cache: yes
+        state: present
+
+    - name: Get Ubuntu release codename
+      command: lsb_release -sc
+      register: ubuntu_codename
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ubuntu_codename.stdout }} stable"
+
+    - name: Install Docker packages
+      apt:
+        name:
+          - docker-ce=5:19.03.15~3-0~ubuntu-{{ ubuntu_codename.stdout }}
+          - docker-ce-cli=5:19.03.15~3-0~ubuntu-{{ ubuntu_codename.stdout }}
+          - containerd.io
+        update_cache: yes
+        state: present

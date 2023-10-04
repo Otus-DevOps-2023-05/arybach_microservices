@@ -1,2 +1,5 @@
 .env
 *.env
+*.tfvars
+*.conf
+join_command.txt
