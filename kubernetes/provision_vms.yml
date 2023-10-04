@@ -1,0 +1,55 @@
+---
+- name: Create Yandex Cloud instances and extract IP addresses
+  hosts: localhost
+  tasks:
+    - name: Create docker-host-1
+      command: >
+        yc compute instance create
+        --name docker-host-1
+        --zone ru-central1-a
+        --network-interface subnet-name=default-ru-central1-a,nat-ip-version=ipv4
+        --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-2004-lts,size=45
+        --ssh-key ~/.ssh/yc.pub
+        --cores 4
+        --memory 4
+      register: docker_host_1_result
+
+    - name: Create docker-host-2
+      command: >
+        yc compute instance create
+        --name docker-host-2
+        --zone ru-central1-a
+        --network-interface subnet-name=default-ru-central1-a,nat-ip-version=ipv4
+        --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-2004-lts,size=45
+        --ssh-key ~/.ssh/yc.pub
+        --cores 4
+        --memory 4
+      register: docker_host_2_result
+
+    - name: Set MASTER_IP and WORKER_IP facts
+      set_fact:
+        MASTER_IP: "{{ docker_host_1_result.stdout | regex_findall('one_to_one_nat:\\s+address: (\\d+\\.\\d+\\.\\d+\\.\\d+)') | first }}"
+        WORKER_IP: "{{ docker_host_2_result.stdout | regex_findall('one_to_one_nat:\\s+address: (\\d+\\.\\d+\\.\\d+\\.\\d+)') | first }}"
+
+    - name: Generate inventory.ini from template
+      template:
+        src: inventory_template.ini.j2
+        dest: ./inventory.ini
+
+    - name: Export MASTER_IP and WORKER_IP as environment variables
+      shell: |
+        export MASTER_IP={{ MASTER_IP }}
+        export WORKER_IP={{ WORKER_IP }}
+
+    - name: Add hosts to inventory
+      add_host:
+        name: "{{ item.name }}"
+        groups: "{{ item.group }}"
+        ansible_host: "{{ item.ip }}"
+      loop:
+        - name: "docker-host-1"
+          group: "masters"
+          ip: "{{ MASTER_IP }}"
+        - name: "docker-host-2"
+          group: "workers"
+          ip: "{{ WORKER_IP }}"
