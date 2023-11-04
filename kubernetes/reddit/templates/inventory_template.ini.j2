@@ -1,0 +1,11 @@
+[master]
+{{ external_v4_endpoint.value.split("://")[1] }} ansible_ssh_private_key_file=~/.ssh/yc ansible_user=yc-user
+
+[all:vars]
+cluster_id="{{ cluster_id.value }}"
+external_v4_endpoint="{{ external_v4_endpoint.value.split("://")[1] }}"
+internal_v4_endpoint="{{ internal_v4_endpoint.value.split("://")[1] }}"
+node_service_account_id="{{ node_service_account_id.value }}"
+service_account_id="{{ service_account_id.value }}"
+subnet_id="{{ subnet_id.value }}"
+traefik_ext_ip="{{ traefik_ext_ip.value }}"

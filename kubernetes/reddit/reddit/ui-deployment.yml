@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui-deployment
+  labels:
+    app: reddit
+    component: ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: ui
+  template:
+    metadata:
+      name: ui
+      labels:
+        app: reddit
+        component: ui
+    spec:
+      containers:
+        - image: arybach/ui:1.0
+          name: ui
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+          env:
+            - name: POST_SERVICE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: database-config
+                  key: POST_SERVICE_HOST  # Use service name as the hostname
+            - name: POST_SERVICE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: database-config
+                  key: POST_SERVICE_PORT
+            - name: COMMENT_SERVICE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: database-config
+                  key: COMMENT_SERVICE_HOST  # Use service name as the hostname
+            - name: COMMENT_SERVICE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: database-config
+                  key: COMMENT_SERVICE_PORT

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-config
+data:
+  POST_SERVICE_HOST: post.traefik.svc.cluster.local
+  POST_SERVICE_PORT: "5000"
+  POST_DATABASE_HOST: mongodb.traefik.svc.cluster.local
+  POST_DATABASE: posts
+  POST_DATABASE_PORT: "27017"
+  COMMENT_SERVICE_HOST: comment.traefik.svc.cluster.local
+  COMMENT_SERVICE_PORT: "9292"
+  COMMENT_DATABASE_HOST: mongodb.traefik.svc.cluster.local
+  COMMENT_DATABASE_PORT: "27017"
+  COMMENT_DATABASE: comments
+  MONGODB_SERVICE_HOST: mongodb.traefik.svc.cluster.local
+  MONGODB_SERVICE_PORT: "27017"

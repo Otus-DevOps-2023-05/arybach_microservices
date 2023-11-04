@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post-deployment
+  labels:
+    app: reddit
+    component: post
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: post
+  template:
+    metadata:
+      name: post
+      labels:
+        app: reddit
+        component: post
+    spec:
+      hostname: post
+      containers:
+      - image: arybach/post:1.0
+        name: post
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        env:
+        - name: POST_DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: POST_DATABASE_HOST  # Use service name as the hostname
+        - name: POST_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: POST_DATABASE
+        - name: POST_DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: POST_DATABASE_PORT

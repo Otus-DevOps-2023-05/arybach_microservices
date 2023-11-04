@@ -1,0 +1,19 @@
+resource "tls_private_key" "pk" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "local_file" "ssh_key" {
+  depends_on  = [tls_private_key.pk]
+
+  filename = "${var.key_name}.pem"
+  content  = tls_private_key.pk.private_key_pem
+
+  provisioner "local-exec" {
+    command = "chmod 400 ${local_file.ssh_key.filename}"
+  }
+}
+
+output "key_name" {
+  value = local_file.ssh_key.filename
+}

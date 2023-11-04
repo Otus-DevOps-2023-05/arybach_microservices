@@ -1,0 +1,9 @@
+service_account_key_file = "/home/groot/.ssh/yc_key.json"
+service_account_id       = "aje4b455uh1rq2ua4gf3"
+cloud_id                 = "b1gi0a78vi3q6bgg0v07"
+folder_id                = "b1gjev1g87fgira75vkt" # infra folder
+image_id                 = "fd80bm0rh4rkepi5ksdi" # ubuntu 22.04
+zone                     = "ru-central1-a"
+yc_token                 = "y0_XxAAAAATuwQAAAADABu28nimTXb_90XXx51fS-iSccpo0XxXxXtzeE"
+k8s                      = "1.25"
+ssh_public_key_file     = "/home/groot/.ssh/yc.pub"

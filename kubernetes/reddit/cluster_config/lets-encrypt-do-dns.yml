@@ -1,0 +1,8 @@
+# echo -n $DIGITALOCEAN_TOKEN | base64
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: cert-manager
+  name: lets-encrypt-do-dns
+data:
+  access-token: see readme for instructions =

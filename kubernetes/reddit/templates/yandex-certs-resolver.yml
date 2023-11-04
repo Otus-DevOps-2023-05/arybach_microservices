@@ -1,0 +1,8 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: CertificateResolver
+metadata:
+  name: yandex
+spec:
+  yandexCertificate:
+    folderId: "b1gjev1g87fgira75vkt"
+    secretManagerSecretId: <YOUR_YANDEX_SECRET_MANAGER_SECRET_ID>

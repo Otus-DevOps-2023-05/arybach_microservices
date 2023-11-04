@@ -1,0 +1,29 @@
+---
+- name: Generate SSL Certificate
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    ingress_name: traefik-ingress
+    tls_secret_name: tls-secret
+    traefik_lb_ip: "51.250.2.171"
+    certificate_dir: /etc/ssl/certs
+    certificate_file: tls.crt
+    private_key_file: tls.key
+  tasks:
+
+    - name: Generate SSL certificate
+      command: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout {{ certificate_dir }}/{{ private_key_file }} -out {{ certificate_dir }}/{{ certificate_file }} -subj "/CN={{ traefik_lb_ip }}"
+      args:
+        creates: "{{ certificate_dir }}/{{ certificate_file }}"
+      changed_when: false
+
+    - name: Set permissions for TLS certificate files
+      become: yes
+      ansible.builtin.file:
+        path: "{{ certificate_dir }}/{{ item }}"
+        owner: root
+        group: root
+        mode: '0755'
+      with_items:
+        - "{{ certificate_file }}"
+        - "{{ private_key_file }}"

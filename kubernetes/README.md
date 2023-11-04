@@ -105,9 +105,8 @@ ansible-playbook -i inventory.ini worker_node.yml
 ```
 # or concatinate them into one:
 ```
+ansible-playbook provision_vms.yml
 ansible-playbook -i inventory.ini master_node.yml worker_node.yml
-ansible-playbook -i provision_vms.yml inventory.ini master_node.yml worker_node.yml
-
 ```
 ## or copy IPs of both hosts to the provision.sh file and run it
 ```

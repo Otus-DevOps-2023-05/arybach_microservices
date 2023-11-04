@@ -19,6 +19,7 @@ RUN bundle install
 
 COPY . $APP_HOME
 
-ENV COMMENT_DATABASE_HOST=post_db COMMENT_DATABASE=comments
+# Use environment variables for database host and name
+ENV COMMENT_DATABASE_HOST=${COMMENT_DATABASE_HOST} COMMENT_DATABASE=${COMMENT_DATABASE}
 
 CMD ["puma"]

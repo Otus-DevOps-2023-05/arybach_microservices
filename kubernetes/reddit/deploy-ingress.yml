@@ -1,0 +1,69 @@
+- name: Deploy Cert-Manager and Traefik Ingress Controller
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    ns: traefik
+    ingress_name: traefik-ingress
+    cert_manager_name: cert-manager
+    kubeconfig_path: /home/groot/.kube/config
+    tls_secret_name: tls-secret
+    certificate_dir: /etc/ssl/certs
+    certificate_file: tls.crt
+    private_key_file: tls.key
+    cert_manager_version: v1.13.1
+    traefik_version: v25.0.0 # docker version 2.10
+  tasks:
+    # - name: Create Traefik Namespace
+    #   command: kubectl create namespace {{ ns }}
+    #   ignore_errors: yes
+
+    - name: Add Traefik Helm Repository
+      command: helm repo add traefik https://helm.traefik.io/traefik
+      ignore_errors: yes
+
+    - name: Update Helm Repositories
+      command: helm repo update
+      ignore_errors: yes
+
+    - name: Add Gateway Rbac Role for Traefik
+      command: kubectl apply -f ./templates/traefik-rbac-role.yml
+      retries: 3
+      delay: 10
+
+    # only additional options are set. default traefik values.yml is available here:
+    # https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml
+    - name: Install Traefik Helm Chart
+      command: helm install {{ ingress_name }} traefik/traefik \
+        --namespace {{ ns }} \
+        --kubeconfig {{ kubeconfig_path }} \
+        --values=./templates/traefik-values.yml \
+        --version {{ traefik_version }}
+      retries: 3
+      delay: 10
+
+    # - name: Apply Traefik Network Policy
+    #   command: kubectl apply -f ./services/traefik-network-policy.yml --namespace {{ ns }}
+    #   retries: 3
+    #   delay: 10
+
+    - name: Apply Ingress
+      command: kubectl apply -f ./services/ui-ingress.yml --namespace {{ ns }}
+      retries: 3
+      delay: 10
+
+    - name: Add Jetstack Helm Repository for Cert-Manager
+      command: helm repo add jetstack https://charts.jetstack.io
+      ignore_errors: yes
+
+    - name: Update Helm Repositories
+      command: helm repo update
+      ignore_errors: yes
+
+    # - name: Apply Cert-Manager CRD
+    #   command: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.crds.yaml
+    #   ignore_errors: yes
+
+    # - name: Install Cert-Manager Helm Chart
+    #   command: helm install {{ cert_manager_name }} jetstack/cert-manager --namespace {{ ns }} --version {{ cert_manager_version }}
+    #   retries: 3
+    #   delay: 10

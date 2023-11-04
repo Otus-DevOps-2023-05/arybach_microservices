@@ -1,0 +1,20 @@
+---
+- name: Generate Inventory File from Terraform Outputs
+  hosts: localhost
+  gather_facts: false  # Disable gathering facts
+
+  tasks:
+    - name: Include Terraform Output Variables
+      include_vars:
+        file: ./terraform/yandex/terraform_outputs.json
+
+    - name: Generate Inventory File from Template
+      template:
+        src: ./templates/inventory_template.ini.j2  # yandex
+        dest: inventory.ini
+
+    # yandex
+    - name: Fetch Cluster Credentials
+      command: yc managed-kubernetes cluster get-credentials --id {{ cluster_id.value }} --external --force
+      environment:
+        KUBECONFIG: "~/.kube/config"
