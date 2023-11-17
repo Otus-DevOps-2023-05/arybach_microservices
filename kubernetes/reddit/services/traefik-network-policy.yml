@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-traffic
+spec:
+  podSelector: {}  # Apply to all pods
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}  # Allow all egress traffic
+  ingress:
+    - {}  # Allow all ingress traffic
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-traffic-comment
+  labels:
+    app: reddit
+spec:
+  podSelector:
+    matchLabels:
+      app: reddit
+      component: mongodb
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: reddit
+          component: comment
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-traffic-post
+  labels:
+    app: reddit
+spec:
+  podSelector:
+    matchLabels:
+      app: reddit
+      component: mongodb
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: reddit
+          component: post

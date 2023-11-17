@@ -1,0 +1,64 @@
+---
+- name: Deploy Kubernetes Deployments
+  hosts: localhost
+  gather_facts: false
+  vars:
+    ns: traefik
+  tasks:
+
+    # - name: Patch kube-proxy config map
+    #   command: >
+    #     kubectl patch configmap kube-proxy-config -n kube-system --type merge --patch '{
+    #       "data": {
+    #         "kube-proxy-config": "apiVersion: kubeproxy.config.k8s.io/v1\nbindAddress: \"\"\nclientConnection:\n  acceptContentTypes: \"\"\n  burst: 0\n  contentType: \"\"\n  kubeconfig: \"\"\n  qps: 0\nclusterCIDR: 10.112.128.0/17\nconfigSyncPeriod: 0s\nconntrack:\n  max: null\n  maxPerCore: null\n  min: null\n  tcpCloseWaitTimeout: null\n  tcpEstablishedTimeout: null\nenableProfiling: false\nhealthzBindAddress: \"\"\nhostnameOverride: \"\"\niptables:\n  masqueradeAll: true\n  masqueradeBit: null\n  minSyncPeriod: 10s\n  syncPeriod: 1m0s\nipvs:\n  excludeCIDRs: null\n  minSyncPeriod: 10s\n  scheduler: \"\"\n  strictARP: false\n  syncPeriod: 1m0s\nkind: KubeProxyConfiguration\nmetricsBindAddress: \"\"\nmode: iptables\nnodePortAddresses: null\noomScoreAdj: -998\nportRange: \"\"\nresourceContainer: \"\"\nudpIdleTimeout: 0s\nwinkernel:\n  enableDSR: false\n  networkName: \"\"\n  sourceVip: \"\"\n"
+    #       }
+    #     }'
+    #   retries: 3
+    #   delay: 10
+
+    # update Calico CRDs and policies
+    # - name: Install Calico CRDs Kube System
+    #   command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml --namespace kube-system
+    #   retries: 3
+    #   delay: 10
+
+    # - name: Apply Calico Network Policy Kube System
+    #   command: kubectl apply -f ./services/calico-network-policy.yml --namespace kube-system
+    #   retries: 3
+    #   delay: 10
+
+    # - name: Apply Calico Network Policy Traefik
+    #   command: kubectl apply -f ./services/calico-network-policy.yml --namespace {{ ns }}
+    #   retries: 3
+    #   delay: 10
+
+    - name: Ensure the namespace exists
+      command: kubectl create namespace {{ ns }}
+      ignore_errors: yes  # Ignore errors if the namespace already exists
+
+    # # digital ocean
+    # - name: Create disk for MongoDB
+    #   command: doctl compute volume create --size 5Gi --region sgp1 --description "disk for k8s" k8s
+    #   retries: 3
+    #   delay: 10
+
+    # yandex
+    # default settings here: kubectl get storageclass
+    - name: Create disk for MongoDB
+      command: >
+        yc compute disk create
+        --name k8s
+        --size 5
+        --description "disk for k8s"
+      retries: 3
+      delay: 10
+    # if not needed or already exists: yc compute disk delete k8s
+
+    - name: Apply ConfigMap
+      command: kubectl apply -f ./templates/database-config.yml --namespace {{ ns }}
+      retries: 3
+      delay: 10
+
+    - name: Apply Deployments
+      command: kubectl apply -f ./reddit  --namespace {{ ns }}
+      ignore_errors: yes

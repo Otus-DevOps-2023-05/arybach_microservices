@@ -1,0 +1,47 @@
+---
+- name: Deploy Services
+  hosts: localhost
+  gather_facts: no
+  vars:
+    ns: traefik
+  tasks:
+
+    # - name: Ensure the traefik namespace exists
+    #   command: kubectl create namespace {{ ns }}
+    #   ignore_errors: yes  # Ignore errors if the namespace already exists
+
+    # Helm doesn't update CRDs automatically
+    - name: Update CRDs
+      command: kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+      retries: 3
+      delay: 10
+
+    - name: Apply Post Service
+      command: kubectl apply -f ./services/post-service.yml --namespace {{ ns }}
+      retries: 3
+      delay: 10
+
+    - name: Apply Comment Service
+      command: kubectl apply -f ./services/comment-service.yml --namespace {{ ns }}
+      retries: 3
+      delay: 10
+
+    - name: Apply MongoDB Service
+      command: kubectl apply -f ./services/mongodb-service.yml --namespace {{ ns }}
+      retries: 3
+      delay: 10
+
+    - name: Apply UI Service
+      command: kubectl apply -f ./services/ui-service.yml --namespace {{ ns }}
+      retries: 3
+      delay: 10
+
+    # - name: Apply Internal LB Service
+    #   command: kubectl apply -f ./services/lb-service.yml --namespace {{ ns }}
+    #   retries: 3
+    #   delay: 10
+
+    # - name: Apply NodePort Service
+    #   command: kubectl apply -f ./services/nodeport.yml --namespace {{ ns }}
+    #   retries: 3
+    #   delay: 10

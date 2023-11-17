@@ -1,0 +1,18 @@
+resource "yandex_cm_certificate" "le-certificate" {
+  name    = "yandex_le_cert"
+  domains = var.domains
+
+  managed {
+    challenge_type = "DNS_CNAME"
+    challenge_count = 2
+  }
+}
+
+resource "yandex_dns_recordset" "redevops" {
+  count   = yandex_cm_certificate.le-certificate.managed[0].challenge_count
+  zone_id = var.dns_zone
+  name    = yandex_cm_certificate.le-certificate.challenges[count.index].dns_name
+  type    = yandex_cm_certificate.le-certificate.challenges[count.index].dns_type
+  data    = [yandex_cm_certificate.le-certificate.challenges[count.index].dns_value]
+  ttl     = 60
+}

@@ -1,0 +1,68 @@
+---
+- name: Apply SSL Certificates and Ingress
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    ns: traefik
+    ingress_name: ui-www
+    tls_secret_name: tls-secret
+    certificate_dir: /etc/ssl/certs
+    certificate_file: tls.crt
+    private_key_file: tls.key
+    cert_manager_version: v1.13.1
+  tasks:
+
+    # - name: Generate Yandex Secret Manager Secret
+    #   shell: |
+    #     yc secret-manager version create \
+    #       --name {{ tls_secret_name }} \
+    #       --env production \
+    #       --key tls.crt --value "{{ lookup('file', certificate_dir + '/' + certificate_file) }}" \
+    #       --key tls.key --value "{{ lookup('file', certificate_dir + '/' + private_key_file) }}"
+    #   register: yandex_secret_output
+    #   changed_when: false
+
+    # - name: Set Yandex Secret Manager Secret ID
+    #   set_fact:
+    #     yandex_secret_id: "{{ yandex_secret_output.stdout | from_json | json_query('id') }}"
+    #   changed_when: false
+
+    # - name: Generate Yandex Certs Resolver YAML
+    #   template:
+    #     src: ./templates/yandex-certs-resolver.yml.j2
+    #     dest: ./templates/yandex-certs-resolver.yml
+    #   changed_when: false
+
+    # - name: Apply Yandex Certs Resolver
+    #   command: kubectl apply -f ./templates/yandex-certs-resolver.yml
+    #   ignore_errors: yes
+
+    - name: Apply Cert-Manager CRD
+      command: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.crds.yaml
+      retries: 3
+      delay: 10
+
+    # # digital ocean
+    # - name: Create Secret
+    #   command: kubectl apply -f ./cluster_config/lets-encrypt-do-dns.yaml
+    #   retries: 3
+    #   delay: 10
+
+    # - name: Apply Issuer
+    #   command: kubectl apply -f lets-encrypt-issuer.yaml
+    #   retries: 3
+    #   delay: 10
+    - name: Create Secret
+      command: kubectl create secret tls {{ tls_secret_name }} --key {{ certificate_dir }}/{{ private_key_file }} --cert {{ certificate_dir }}/{{ certificate_file }} -n {{ ns }}
+
+    - name: Apply TLS secret to UI-www Ingress
+      command: kubectl patch ingress {{ ingress_name }} --namespace={{ ns }} -p '{"spec":{"tls":[{"hosts":["redevops.io", "www.redevops.io"],"secretName":"{{ tls_secret_name }}"}]}}'
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Wait for Ingress to update
+      command: kubectl describe ingress {{ ingress_name }} --namespace={{ ns }}
+      register: ingress_status
+      until: '"tls-secret" in ingress_status.stdout'
+      retries: 60
+      delay: 10

@@ -39,6 +39,7 @@ https://docs.digitalocean.com/products/marketplace/catalog/kubernetes-1-19/
 ### kubectl exec -ti pod_name -- sh
 ### attaches debugging container with tools to the pod, which normally does not have them
 ### kubectl debug -it pod_name --image=busybox --target=pod_name -- sh
+### kubectl run -i --tty --rm debug-container --image=busybox --restart=Never -- sh
 ### kubectl edit deployment no-shell
 ### for docs:
 ### kubectl explain deployment.spec.template.spec.containers

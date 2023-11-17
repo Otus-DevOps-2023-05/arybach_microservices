@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-lb
+  labels:
+    app: reddit
+  #   # component: ui-lb
+  # annotations:
+  #   yandex.cloud/load-balancer-type: internal
+  #   yandex.cloud/subnet-id: e9b44hque1cu2mr797f4
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 81
+    protocol: TCP
+    targetPort: 9292
+  selector:
+    app: reddit
+    component: ui

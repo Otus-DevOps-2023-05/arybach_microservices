@@ -3,3 +3,6 @@
 *.tfvars
 *.conf
 join_command.txt
+*.ini
+*.tfstate
+*.tfstate.backup

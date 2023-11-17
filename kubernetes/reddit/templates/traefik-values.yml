@@ -1,0 +1,146 @@
+globalArguments:
+  - "--global.sendanonymoususage=false"
+  - "--global.checknewversion=false"
+
+additionalArguments: # ports 9000 (traefik) and 9100 (prometheus) are default settings
+  - "--api.insecure=true"  # Only for testing, not recommended for production.
+  - "--api.dashboard=true"
+  - "--accesslog"
+  - "--entrypoints.web.address=:8000"
+  - "--entrypoints.websecure.address=:8443"
+  - "--serversTransport.insecureSkipVerify=true"  # Should be removed for production.
+  - "--log.level=DEBUG"  # should be 'INFO' for production.
+  - "--providers.kubernetescrd"
+  - "--providers.kubernetescrd.ingressclass=traefik-ingress"
+  - "--providers.kubernetesIngress"
+  - "--providers.kubernetesingress.ingressclass=traefik-ingress"
+  # - "--providers.kubernetesingress.ingressendpoint.hostname=solarwinds123.ru"
+  - "--providers.kubernetescrd.allowCrossNamespace=true"
+  - "--providers.kubernetesgateway=true"
+  # my location is half the world from the servers
+  - "--serversTransport.forwardingTimeouts.dialTimeout=30s"
+  - "--serversTransport.forwardingTimeouts.responseHeaderTimeout=30s"
+  - "--serversTransport.forwardingTimeouts.idleConnTimeout=30s"
+  - "--certificatesresolvers.myresolver.acme.tlschallenge"
+  - "--certificatesresolvers.myresolver.acme.email=mats.tumblebuns@gmail.com"
+  - "--certificatesresolvers.myresolver.acme.storage=acme.json"
+  # Please note that this is the staging Let's Encrypt server.
+  # Once you get things working, you should remove that whole line altogether.
+  - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+
+deployment:
+  enabled: true
+  replicas: 1
+
+ports:
+  web:
+    tls:
+      enabled: false
+  websecure:
+    tls:
+      enabled: true
+  traefik:
+    tls:
+      enabled: false
+
+ingressRoute:
+  enabled: true
+  dashboard:
+    enabled: true
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    ingressClass: traefik-ingress
+    allowExternalNameServices: true
+  kubernetesIngress:
+    enabled: true
+    ingressClass: traefik-ingress
+    allowExternalNameServices: true
+    publishedService:
+      enabled: false
+
+rbac:
+  enabled: true
+
+# do not overwrite default settings with empty
+service:
+  enabled: true
+  type: LoadBalancer
+  # annotations: {}
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: traefik-ingress-traefik
+  spec:
+    loadBalancerIP: 51.250.2.171  # Reserved external IP created by terraform
+    externalTrafficPolicy: Cluster # local will target nodes where traefik-ingress is running and might not have the service pod running
+    # loadBalancerSourceRanges: []
+    # externalIPs: []
+    ports:
+      - name: web
+        port: 80
+        # targetPort: 8000
+        exposedPort: 80
+        forwardedHeaders:
+          insecure: true
+        protocol: TCP
+      - name: websecure
+        port: 443
+        # targetPort: 8443
+        exposedPort: 443
+        protocol: TCP
+
+# Create IngressRoutes for the ping and dashboard
+extraObjects:
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: IngressRoute
+    metadata:
+      name: health-check
+      namespace: traefik
+    spec:
+      entryPoints:
+        - web
+      routes:
+        - match: Path(`/ping`)
+          kind: Rule
+          services:
+            - name: ping@internal
+              kind: TraefikService
+
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: IngressRoute
+    metadata:
+      name: traefik-dashboard
+      namespace: traefik
+    spec:
+      entryPoints:
+        - traefik
+      routes:
+        - match: Host(`dashboard.solarwinds123.ru`)
+          kind: Rule
+          services:
+            - name: api@internal
+              kind: TraefikService
+      middlewares:
+        - name: dashboard-auth
+
+# Secret with admin user credentials
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      namespace: traefik
+      name: dashboard-auth-secret
+    type: kubernetes.io/basic-auth
+    stringData:
+      username: admin
+      password: solarwinds123
+
+# BasicAuth middleware definition
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: Middleware
+    metadata:
+      namespace: traefik
+      name: dashboard-auth
+    spec:
+      basicAuth:
+        secret: dashboard-auth-secret

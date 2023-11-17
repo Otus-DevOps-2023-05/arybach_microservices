@@ -13,6 +13,7 @@ RUN pip install -v -r /app/requirements.txt
 # Remove build dependencies if no longer needed
 RUN apk del .build-deps
 
-ENV POST_DATABASE_HOST=post_db POST_DATABASE=posts
+# Use environment variables for database host and name
+ENV POST_DATABASE_HOST=${POST_DATABASE_HOST} POST_DATABASE=${POST_DATABASE}
 
 CMD ["python3", "post_app.py"]

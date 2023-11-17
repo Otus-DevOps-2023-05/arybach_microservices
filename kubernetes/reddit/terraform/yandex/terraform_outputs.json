@@ -1,0 +1,42 @@
+{
+  "cluster_ca_certificate": {
+    "sensitive": false,
+    "type": "string",
+    "value": "-----BEGIN CERTIFICATE-----\nMIIC5zCCAc+gAwIBAgIBADANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDEwprdWJl\ncm5ldGVzMB4XDTIzMTEwNDAxMjkyMFoXDTMzMTEwMTAxMjkyMFowFTETMBEGA1UE\nAxMKa3ViZXJuZXRlczCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJvU\nKSJXCvIVGyizjMYQN5fpwkh3PXcr4wM/2kcrLm+XFQJOlvRWcJmH2dI2JEEkPk+f\n31WIbHkEdVC+cIPXuMLY8VR9IK+OuDd9mHgSz0gIJ2sfBrGU00TC34o1OOXEl6Qe\nEYxPcurAL6+WH/FYMxhn0YTSq6jURRShycug0wVZVGCluwj8H8OqyqR5cFVeFx8p\ny1HjPfayzTslfGT1bk1sD0mLSFDuYuMggxZFWsHk+xEp1+Oy6P8P4D/awW7KQUae\ncpKLdit/Ti/n/deEmubUaMMmvPQ2T1umCwrFY5FO+89eRGJnzyDriJ+MBdxHxB+H\nMBU+iQyxWZ+qL3xWLLcCAwEAAaNCMEAwDgYDVR0PAQH/BAQDAgKkMA8GA1UdEwEB\n/wQFMAMBAf8wHQYDVR0OBBYEFKl0CZzamN7NFpFkfPKyMx+vgJxpMA0GCSqGSIb3\nDQEBCwUAA4IBAQBGElpTYTIrBB7TiM6diSTlbxe/MKkhvFkolzwZSIF530QkijFG\noiI0niQiMIcjU1A8g4dNwX/T8GOAKnOw9EKQ9HBv7rKZ+huzNou7RjuJmQSXMZDb\nMMxY4qqjCcuM22wGIB9qojgfJgzE9mvy/8wjxhEiD0nFI+ePu0zdR9dR9CCHJpyU\ncgqr9RCFmsS2sWpmYzexLrAeEoQ3beUEK+SviG8/p0vsG7PS6XZYqfTxEekz99/L\nXidvvb6q7p4NzFfjKsQioirCmg0ABr9yoERjSrCP4F59XFMS0QdEBGRpJEUHNMvO\nYKNxD6TSI2N8eI0ZDGSbOQdSw5TjyR+0uzH3\n-----END CERTIFICATE-----\n"
+  },
+  "cluster_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "cattu9nnevbmd6gjv8nn"
+  },
+  "external_v4_endpoint": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://51.250.85.248"
+  },
+  "internal_v4_endpoint": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://10.1.0.7"
+  },
+  "node_service_account_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "ajeugrgqi3u21ikrjcne"
+  },
+  "service_account_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "ajelj6p2r4iobi7gbahh"
+  },
+  "subnet_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "e9bdmlagoive7j9uhpui"
+  },
+  "traefik_ext_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "51.250.2.171"
+  }
+}

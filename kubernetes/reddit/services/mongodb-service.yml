@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec:
+  type: NodePort
+  selector:
+    app: reddit
+    component: mongodb
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  # externalName: mongodb.traefik.svc.cluster.local

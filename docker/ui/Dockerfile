@@ -18,6 +18,8 @@ ADD Gemfile* $APP_HOME/
 RUN /bin/bash -l -c "bundle install --deployment" # Installing gems to a local path
 ADD . $APP_HOME
 
-ENV POST_SERVICE_HOST=post POST_SERVICE_PORT=5000 COMMENT_SERVICE_HOST=comment COMMENT_SERVICE_PORT=9292
+# Use environment variables for service hostnames and ports
+ENV POST_SERVICE_HOST=${POST_SERVICE_HOST} POST_SERVICE_PORT=${POST_SERVICE_PORT} \
+    COMMENT_SERVICE_HOST=${COMMENT_SERVICE_HOST} COMMENT_SERVICE_PORT=${COMMENT_SERVICE_PORT}
 
 CMD ["/bin/bash", "-l", "-c", "bundle exec puma"]

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comment-deployment
+  labels:
+    app: reddit
+    component: comment  # Set the component label here
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: comment  # Set the component label here
+  template:
+    metadata:
+      name: comment
+      labels:
+        app: reddit
+        component: comment  # Set the component label here
+    spec:
+      containers:
+      - image: arybach/comment:1.0
+        name: comment
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        env:
+        - name: COMMENT_DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: COMMENT_DATABASE_HOST
+        - name: COMMENT_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: COMMENT_DATABASE
